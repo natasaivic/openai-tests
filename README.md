@@ -38,6 +38,7 @@ pytest
 - `tests/` - Test files directory
   - `test_models.py` - Unit tests for /models endpoint
   - `test_embeddings.py` - Unit tests for /embeddings endpoint
+  - `test_files.py` - Unit tests for /files endpoint
 - `requirements.txt` - Python dependencies
 - `.env` - Environment variables (API keys) - not tracked in git
 - `.gitignore` - Git ignore file (includes .env protection)
@@ -60,4 +61,16 @@ pytest
 - Model validation and error handling
 - Response structure and field validation
 - Encoding format testing
-- Usage statistics validation 
+- Usage statistics validation
+
+### Files Endpoint (`/files`)
+- List files with filtering, pagination, and sorting
+- Upload files with multipart form data handling
+- Retrieve specific file information and metadata
+- Download file content
+- Delete files with proper cleanup
+- Authentication and authorization testing
+- File validation (purpose, format, size limits)
+- Error handling (404, 400, 413 for file operations)
+- Response structure and field validation
+- Complete file lifecycle testing (upload → retrieve → delete)
