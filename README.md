@@ -37,6 +37,27 @@ pytest
 - `openapi.yaml` - OpenAI API specification
 - `tests/` - Test files directory
   - `test_models.py` - Unit tests for /models endpoint
+  - `test_embeddings.py` - Unit tests for /embeddings endpoint
 - `requirements.txt` - Python dependencies
 - `.env` - Environment variables (API keys) - not tracked in git
-- `.gitignore` - Git ignore file (includes .env protection) 
+- `.gitignore` - Git ignore file (includes .env protection)
+
+## Test Coverage
+
+### Models Endpoint (`/models`)
+- List all models with validation
+- Retrieve specific model details
+- Authentication and authorization testing
+- Error handling (404, 401, malformed requests)
+- Field validation and type checking
+- Model ID format validation
+- Network timeout and server error handling
+
+### Embeddings Endpoint (`/embeddings`)
+- Create embeddings for single and multiple inputs
+- Authentication and authorization testing
+- Input validation (empty, null, oversized inputs)
+- Model validation and error handling
+- Response structure and field validation
+- Encoding format testing
+- Usage statistics validation 
