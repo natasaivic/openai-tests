@@ -5,6 +5,7 @@ from conftest import BASE_URL, check_rate_limit_and_skip
 class TestModelsEndpoint:
     """Test cases for /models endpoint operations"""
     
+    @pytest.mark.smoke
     def test_list_models_success(self, headers):
         """Test GET /models returns list of available models"""
         response = requests.get(f"{BASE_URL}/models", headers=headers)
@@ -28,6 +29,8 @@ class TestModelsEndpoint:
             assert field in model
         assert model["object"] == "model"
     
+    @pytest.mark.smoke
+    @pytest.mark.auth
     def test_list_models_unauthorized(self):
         """Test GET /models with invalid API key returns 401"""
         invalid_headers = {

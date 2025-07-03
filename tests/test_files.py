@@ -7,6 +7,7 @@ from conftest import BASE_URL, check_rate_limit_and_skip
 class TestFilesEndpoint:
     """Test cases for /files endpoint operations"""
     
+    @pytest.mark.smoke
     def test_list_files_success(self, headers):
         """Test GET /files returns list of files"""
         response = requests.get(f"{BASE_URL}/files", headers=headers)
@@ -262,6 +263,8 @@ class TestFilesEndpoint:
         
         assert response.status_code == 404
     
+    @pytest.mark.smoke
+    @pytest.mark.auth
     def test_files_unauthorized(self):
         """Test /files endpoints with invalid API key return 401"""
         invalid_headers = {

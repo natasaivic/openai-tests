@@ -5,6 +5,7 @@ from conftest import BASE_URL, check_rate_limit_and_skip
 class TestChatCompletionsEndpoint:
     """Test cases for /chat/completions endpoint operations"""
     
+    @pytest.mark.smoke_extended
     def test_chat_completion_success(self, headers):
         """Test POST /chat/completions with valid request returns completion"""
         payload = {
@@ -186,6 +187,8 @@ class TestChatCompletionsEndpoint:
         # Verify we received streaming content
         assert len(content_chunks) > 0, "Should receive streaming content chunks"
     
+    @pytest.mark.smoke
+    @pytest.mark.auth
     def test_chat_completion_unauthorized(self):
         """Test POST /chat/completions with invalid API key returns 401"""
         invalid_headers = {

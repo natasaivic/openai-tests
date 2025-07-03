@@ -1,137 +1,158 @@
-# OpenAI API Tests
+# OpenAI API Test Suite
 
-This project contains comprehensive tests for OpenAI's API endpoints using the official OpenAPI specification. The tests are written in Python using pytest framework.
+This project contains comprehensive tests for OpenAI's API endpoints with enterprise-grade testing infrastructure, including smoke tests, TestRail integration, and automated CI/CD workflows.
 
-## Setup
+## 🚀 Quick Start
 
-1. Create and activate virtual environment:
+### Setup
+
+1. **Create and activate virtual environment:**
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-2. Install dependencies:
+2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Set up environment variables:
+3. **Set up environment variables:**
    Create a `.env` file in the project root:
    ```bash
    echo "OPENAI_API_KEY=your_actual_api_key_here" > .env
    ```
-   
-   Alternatively, set environment variable directly:
-   ```bash
-   export OPENAI_API_KEY=your_api_key_here
-   ```
 
-## Running Tests
+### Running Tests
 
 ```bash
 # Run all tests
 pytest
 
-# Run tests with JUnit XML output (for TestRail integration)
+# Run smoke tests only (fast, essential tests)
+pytest -m smoke
+
+# Run authentication tests only (fastest)
+pytest -m auth
+
+# Run with detailed output and timing
+pytest -v --durations=10
+
+# Generate JUnit XML for TestRail integration
 pytest --junitxml=test-results.xml
 ```
 
-## Project Structure
+## 📁 Project Structure
 
-- `openapi.yaml` - OpenAI API specification
-- `tests/` - Test files directory
-  - `test_models.py` - Unit tests for /models endpoint
-  - `test_embeddings.py` - Unit tests for /embeddings endpoint
-  - `test_files.py` - Unit tests for /files endpoint
-- `scripts/` - TestRail integration scripts
-  - `sync_testrail.py` - Sync test cases to TestRail
-  - `export_test_results.py` - Export test results to TestRail
-- `requirements.txt` - Python dependencies
-- `.env` - Environment variables (API keys, TestRail config) - not tracked in git
-- `.env.example` - Example environment configuration
-- `.gitignore` - Git ignore file (includes .env protection)
+```
+├── .github/workflows/          # GitHub Actions CI/CD
+│   ├── test-and-testrail.yml  # Main test workflow
+│   └── smoke-tests.yml        # Daily smoke test schedule
+├── tests/                     # Test files
+│   ├── conftest.py           # Shared fixtures and helpers
+│   ├── test_models.py        # Models endpoint tests
+│   ├── test_files.py         # Files endpoint tests
+│   ├── test_embeddings.py    # Embeddings endpoint tests
+│   └── test_chat_completions.py # Chat completions tests
+├── scripts/                   # TestRail integration
+│   ├── sync_testrail.py      # Sync test cases to TestRail
+│   ├── export_test_results.py # Export results to TestRail
+│   └── testrail_connectivity_test.py # TestRail connection test
+├── pytest.ini               # Pytest configuration and markers
+├── requirements.txt          # Python dependencies
+├── SMOKE_TESTS.md           # Smoke test documentation
+└── README.md                # This file
+```
 
-## Test Coverage
+## 🧪 Test Coverage
 
-### Models Endpoint (`/models`)
-- List all models with validation
-- Retrieve specific model details
-- Authentication and authorization testing
-- Error handling (404, 401, malformed requests)
-- Field validation and type checking
-- Model ID format validation
-- Network timeout and server error handling
+### Comprehensive Endpoint Testing
 
-### Embeddings Endpoint (`/embeddings`)
-- Create embeddings for single and multiple inputs
-- Authentication and authorization testing
-- Input validation (empty, null, oversized inputs)
-- Model validation and error handling
-- Response structure and field validation
-- Encoding format testing
-- Usage statistics validation
+| Endpoint | Tests | Features Covered |
+|----------|-------|------------------|
+| **Models** (`/models`) | 25 tests | List models, retrieve specific model, auth, error handling, field validation |
+| **Files** (`/files`) | 22 tests | Upload, list, retrieve, delete files, auth, file lifecycle, error handling |
+| **Embeddings** (`/embeddings`) | 19 tests | Create embeddings, batch processing, auth, input validation, model testing |
+| **Chat Completions** (`/chat/completions`) | 20 tests | Chat conversations, streaming, parameters, auth, error handling |
 
-### Files Endpoint (`/files`)
-- List files with filtering, pagination, and sorting
-- Upload files with multipart form data handling
-- Retrieve specific file information and metadata
-- Download file content
-- Delete files with proper cleanup
-- Authentication and authorization testing
-- File validation (purpose, format, size limits)
-- Error handling (404, 400, 413 for file operations)
-- Response structure and field validation
-- Complete file lifecycle testing (upload → retrieve → delete)
+**Total: 86 comprehensive tests covering all major functionality**
 
-## TestRail Integration
+### Test Categories
 
-This project includes scripts for integrating with TestRail to sync test cases and export test results.
+- ✅ **Success scenarios** - Valid requests and expected responses
+- 🔐 **Authentication** - API key validation and authorization
+- ❌ **Error handling** - Invalid requests, malformed data, network issues
+- 🔒 **Security** - Input validation, injection prevention
+- ⚡ **Performance** - Rate limiting, timeout handling
+- 📊 **Response validation** - Structure, types, required fields
+
+## 🚭 Smoke Tests
+
+Smoke tests provide rapid health checks for critical system functionality.
+
+### Essential Smoke Tests (7 tests, ~3 seconds)
+
+- **Models**: API connectivity and authentication
+- **Files**: File operations and authorization  
+- **Embeddings**: Core AI functionality and auth
+- **Chat**: Authentication validation (no API consumption)
+
+### Usage
+
+```bash
+# Essential daily smoke tests
+pytest -m smoke
+
+# Authentication tests only (fastest)
+pytest -m auth
+
+# Extended smoke tests (with API consumption)
+pytest -m smoke_extended
+```
+
+### Automated Daily Execution
+- **Schedule**: 10:00 AM Pacific Time daily
+- **Duration**: ~10 seconds total execution
+- **Cost**: Minimal API consumption
+- **Results**: Automated reporting and alerts
+
+📖 **[Complete Smoke Tests Documentation](SMOKE_TESTS.md)**
+
+## 🔗 TestRail Integration
+
+Seamlessly integrate with TestRail for enterprise test management.
 
 ### Setup TestRail Integration
 
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Configure your TestRail settings in `.env`:
-   ```bash
+1. **Configure environment variables** in `.env`:
+   ```env
    # TestRail Configuration
    TESTRAIL_URL=https://yourcompany.testrail.io
    TESTRAIL_USERNAME=your-email@company.com
    TESTRAIL_PASSWORD=your-api-key-or-password
    TESTRAIL_PROJECT_ID=1
+   TESTRAIL_SUITE_ID=1  # Optional
+   ```
 
-   # Optional - if not provided, will use first available suite
-   # TESTRAIL_SUITE_ID=1
-
-   # Optional - directory containing test files (default: tests)
-   # TESTRAIL_TEST_DIR=tests
-
-   # Optional - JUnit XML file path (default: test-results.xml)
-   # TESTRAIL_JUNIT_FILE=test-results.xml
+2. **Test connectivity:**
+   ```bash
+   python scripts/testrail_connectivity_test.py
    ```
 
 ### Sync Test Cases to TestRail
 
-The sync script creates TestRail test sections and cases based on your pytest structure:
-
 ```bash
+# Discover and create TestRail test cases from pytest files
 python scripts/sync_testrail.py
 ```
 
-**Naming Convention:**
-- Test classes become sections: `TestModelsEndpoint` → `Models Endpoint`
-- Test methods become cases: `test_list_models_success` → `list_models_success`
+**What it creates:**
+- Test sections based on test classes
+- Test cases based on test methods
+- Proper naming conventions and descriptions
+- Organized test structure in TestRail
 
-**Example Output:**
-- **Models Endpoint** section with 16 test cases
-- **Embeddings Endpoint** section with 16 test cases  
-- **Files Endpoint** section with 19 test cases
-
-### Export Test Results to TestRail
-
-After running tests with JUnit XML output, export the results to TestRail:
+### Export Test Results
 
 ```bash
 # 1. Run tests with JUnit XML output
@@ -142,66 +163,178 @@ python scripts/export_test_results.py
 ```
 
 **Features:**
-- Automatically creates a timestamped test run
-- Maps test results to existing TestRail test cases
-- Includes execution time and error messages
-- Handles passed, failed, and skipped test statuses
-- Provides direct link to TestRail run
+- Automatic test run creation with timestamps
+- Maps pytest results to TestRail test cases
+- Includes execution time and error details
+- Handles passed, failed, and skipped statuses
 
-### Complete Workflow
+## ⚙️ GitHub Actions CI/CD
 
-```bash
-# 1. Sync test cases to TestRail (one-time setup)
-python scripts/sync_testrail.py
+Fully automated testing pipeline with multiple workflows.
 
-# 2. Run tests and export results
-pytest --junitxml=test-results.xml
-python scripts/export_test_results.py
-```
+### Main Test Workflow (`test-and-testrail.yml`)
 
-## GitHub Actions CI/CD
+**Triggers:**
+- Push to `main` or `develop` branches
+- Pull requests to `main` branch
 
-This project includes automated testing and TestRail integration via GitHub Actions.
+**Features:**
+- Full test suite execution with pytest
+- JUnit XML result generation
+- TestRail test case sync (main branch only)
+- Automatic test result export to TestRail
+- PR comments with formatted test results
+- Test artifact storage (30-day retention)
 
-### Workflow Features
+### Daily Smoke Tests (`smoke-tests.yml`)
 
-The GitHub Actions workflow automatically:
-- **Runs on every push** to `main` and `develop` branches
-- **Runs on pull requests** to `main` branch
-- **Executes full test suite** with pytest
-- **Generates JUnit XML** test results
-- **Syncs test cases** to TestRail (main branch only)
-- **Exports test results** to TestRail automatically
-- **Comments on PRs** with test result summary
-- **Uploads test artifacts** for 30-day retention
+**Schedule:** 10:00 AM Pacific Time daily
+
+**Features:**
+- Essential smoke test execution
+- Fast system health validation
+- Comprehensive result reporting
+- Failure detection and alerting
+- Manual trigger capability
+- Optional TestRail integration
 
 ### Required GitHub Secrets
 
-Configure these secrets in your GitHub repository settings:
+Configure in **Settings** → **Secrets and variables** → **Actions**:
 
-| Secret Name | Description | Example |
-|-------------|-------------|---------|
-| `OPENAI_API_KEY` | OpenAI API key for testing | `sk-...` |
-| `TESTRAIL_URL` | TestRail instance URL | `https://company.testrail.io` |
-| `TESTRAIL_USERNAME` | TestRail username/email | `user@company.com` |
-| `TESTRAIL_PASSWORD` | TestRail password/API key | `your-api-key` |
-| `TESTRAIL_PROJECT_ID` | TestRail project ID | `1` |
-| `TESTRAIL_SUITE_ID` | TestRail suite ID (optional) | `1` |
+| Secret | Purpose | Example |
+|--------|---------|---------|
+| `OPENAI_API_KEY` | API authentication | `sk-proj-...` |
+| `TESTRAIL_URL` | TestRail instance | `https://company.testrail.io` |
+| `TESTRAIL_USERNAME` | TestRail user | `user@company.com` |
+| `TESTRAIL_PASSWORD` | TestRail API key | `your-api-key` |
+| `TESTRAIL_PROJECT_ID` | Project ID | `1` |
+| `TESTRAIL_SUITE_ID` | Suite ID (optional) | `1` |
 
-### Setting Up Secrets
+## 🏷️ Test Markers
 
-1. Go to your GitHub repository
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Add each secret with the corresponding value
+Use pytest markers to run specific test categories:
 
-### Workflow Behavior
+```bash
+# Smoke tests (essential health checks)
+pytest -m smoke
 
-- **Main branch pushes**: Sync test cases + export results to TestRail
-- **Develop branch pushes**: Export results to TestRail only
-- **Pull requests**: Run tests + comment with results summary
-- **All scenarios**: Upload test results as artifacts
+# Authentication tests
+pytest -m auth
 
-### Manual Workflow Trigger
+# Extended smoke tests (with API consumption)
+pytest -m smoke_extended
 
-You can also trigger the workflow manually from the GitHub Actions tab if needed.
+# Combine markers
+pytest -m "smoke or auth"
+
+# Exclude certain tests
+pytest -m "not slow"
+```
+
+**Available markers:**
+- `smoke` - Essential smoke tests for basic system health
+- `smoke_extended` - Extended smoke tests with API consumption
+- `auth` - Authentication and authorization tests
+- `slow` - Tests that may take longer to execute
+- `integration` - Integration tests requiring external dependencies
+
+## 🔧 Development Workflow
+
+### Local Development
+
+```bash
+# Run tests during development
+pytest -v
+
+# Quick health check
+pytest -m smoke
+
+# Test specific endpoint
+pytest tests/test_models.py -v
+
+# Debug specific test
+pytest tests/test_models.py::TestModelsEndpoint::test_list_models_success -vv
+```
+
+### Before Committing
+
+```bash
+# Run smoke tests for quick validation
+pytest -m smoke
+
+# Run auth tests (fastest validation)
+pytest -m auth
+
+# Full test suite (if time permits)
+pytest
+```
+
+### Pull Request Process
+
+1. **Create feature branch**
+2. **Write/update tests** for new functionality
+3. **Run local smoke tests** (`pytest -m smoke`)
+4. **Create pull request** → triggers automated testing
+5. **Review test results** in PR comments
+6. **Merge** → triggers TestRail sync and full result export
+
+## 📈 Monitoring & Reporting
+
+### Daily Health Monitoring
+- **Automated smoke tests** every morning
+- **Immediate failure alerts** via GitHub Actions
+- **Test result history** in GitHub Actions artifacts
+- **TestRail dashboard** integration
+
+### Test Result Analysis
+- **GitHub Actions summaries** with formatted results
+- **JUnit XML artifacts** for detailed analysis
+- **TestRail test runs** with execution history
+- **PR comments** with test status and metrics
+
+### Failure Investigation
+- **Detailed error messages** in test output
+- **Rate limiting detection** with graceful handling
+- **Network issue identification** and retry logic
+- **Authentication failure alerts** for credential issues
+
+## 🚀 Best Practices
+
+### Writing Tests
+- Follow existing patterns in test files
+- Use descriptive test names and docstrings
+- Include proper error handling and assertions
+- Add rate limiting protection for API calls
+- Use appropriate test markers for categorization
+
+### Test Maintenance
+- Regularly review and update test coverage
+- Monitor smoke test execution times
+- Keep TestRail integration synchronized
+- Update documentation for new features
+
+### Cost Management
+- Use smoke tests for frequent validation
+- Minimize API consumption in automated tests
+- Leverage authentication tests for quick checks
+- Monitor rate limiting and adjust test frequency
+
+## 🤝 Contributing
+
+1. **Fork the repository**
+2. **Create feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Add comprehensive tests** for new functionality
+4. **Ensure smoke tests pass** (`pytest -m smoke`)
+5. **Update documentation** as needed
+6. **Create pull request** with detailed description
+
+## 📄 License
+
+This project is part of OpenAI API testing infrastructure.
+
+---
+
+**Last Updated:** December 2024  
+**Test Suite Version:** v2.0  
+**Total Tests:** 86 comprehensive tests across 4 endpoints

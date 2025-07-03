@@ -5,6 +5,7 @@ from conftest import BASE_URL, check_rate_limit_and_skip
 class TestEmbeddingsEndpoint:
     """Test cases for /embeddings endpoint operations"""
     
+    @pytest.mark.smoke
     def test_create_embedding_success(self, headers):
         """Test POST /embeddings creates embedding successfully"""
         payload = {
@@ -76,6 +77,8 @@ class TestEmbeddingsEndpoint:
             assert isinstance(embedding["embedding"], list)
             assert len(embedding["embedding"]) > 0
     
+    @pytest.mark.smoke
+    @pytest.mark.auth
     def test_create_embedding_unauthorized(self):
         """Test POST /embeddings with invalid API key returns 401"""
         invalid_headers = {
