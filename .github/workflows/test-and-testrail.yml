@@ -1,0 +1,133 @@
+name: Run Tests and Update TestRail
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-update-testrail:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run tests with JUnit XML output
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        pytest --junitxml=test-results.xml --tb=short -v
+      continue-on-error: true
+    
+    - name: Upload test results as artifact
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: test-results.xml
+        retention-days: 30
+    
+    - name: Sync test cases to TestRail (on main branch only)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      env:
+        TESTRAIL_URL: ${{ secrets.TESTRAIL_URL }}
+        TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USERNAME }}
+        TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_PASSWORD }}
+        TESTRAIL_PROJECT_ID: ${{ secrets.TESTRAIL_PROJECT_ID }}
+        TESTRAIL_SUITE_ID: ${{ secrets.TESTRAIL_SUITE_ID || '' }}
+      run: |
+        echo "Syncing test cases to TestRail..."
+        python scripts/sync_testrail.py
+    
+    - name: Export test results to TestRail
+      if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+      env:
+        TESTRAIL_URL: ${{ secrets.TESTRAIL_URL }}
+        TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USERNAME }}
+        TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_PASSWORD }}
+        TESTRAIL_PROJECT_ID: ${{ secrets.TESTRAIL_PROJECT_ID }}
+        TESTRAIL_SUITE_ID: ${{ secrets.TESTRAIL_SUITE_ID || '' }}
+        TESTRAIL_JUNIT_FILE: test-results.xml
+      run: |
+        echo "Exporting test results to TestRail..."
+        python scripts/export_test_results.py
+    
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Read test results if they exist
+          let testSummary = 'Test results not available';
+          try {
+            if (fs.existsSync('test-results.xml')) {
+              const xml = fs.readFileSync('test-results.xml', 'utf8');
+              const testsuiteMatch = xml.match(/<testsuite[^>]*tests="(\d+)"[^>]*failures="(\d+)"[^>]*errors="(\d+)"[^>]*skipped="(\d+)"[^>]*time="([^"]+)"/);
+              
+              if (testsuiteMatch) {
+                const [, tests, failures, errors, skipped, time] = testsuiteMatch;
+                const passed = parseInt(tests) - parseInt(failures) - parseInt(errors) - parseInt(skipped);
+                
+                testSummary = `## 🧪 Test Results
+          
+          | Status | Count |
+          |--------|-------|
+          | ✅ Passed | ${passed} |
+          | ❌ Failed | ${failures} |
+          | ⚠️ Errors | ${errors} |
+          | ⏭️ Skipped | ${skipped} |
+          | **Total** | **${tests}** |
+          | ⏱️ Duration | ${parseFloat(time).toFixed(2)}s |
+          
+          ${parseInt(failures) + parseInt(errors) > 0 ? '❌ **Some tests failed. Please review before merging.**' : '✅ **All tests passed!**'}`;
+              }
+            }
+          } catch (error) {
+            console.log('Error reading test results:', error);
+          }
+          
+          // Post comment
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: testSummary
+          });
+    
+    - name: Fail workflow if tests failed
+      if: always()
+      run: |
+        if [ -f test-results.xml ]; then
+          # Check if there were any failures or errors
+          if grep -q 'failures="[1-9]' test-results.xml || grep -q 'errors="[1-9]' test-results.xml; then
+            echo "❌ Tests failed or had errors"
+            exit 1
+          else
+            echo "✅ All tests passed"
+          fi
+        else
+          echo "❌ No test results found"
+          exit 1
+        fi

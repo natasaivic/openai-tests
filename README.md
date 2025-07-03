@@ -158,3 +158,50 @@ python scripts/sync_testrail.py
 pytest --junitxml=test-results.xml
 python scripts/export_test_results.py
 ```
+
+## GitHub Actions CI/CD
+
+This project includes automated testing and TestRail integration via GitHub Actions.
+
+### Workflow Features
+
+The GitHub Actions workflow automatically:
+- **Runs on every push** to `main` and `develop` branches
+- **Runs on pull requests** to `main` branch
+- **Executes full test suite** with pytest
+- **Generates JUnit XML** test results
+- **Syncs test cases** to TestRail (main branch only)
+- **Exports test results** to TestRail automatically
+- **Comments on PRs** with test result summary
+- **Uploads test artifacts** for 30-day retention
+
+### Required GitHub Secrets
+
+Configure these secrets in your GitHub repository settings:
+
+| Secret Name | Description | Example |
+|-------------|-------------|---------|
+| `OPENAI_API_KEY` | OpenAI API key for testing | `sk-...` |
+| `TESTRAIL_URL` | TestRail instance URL | `https://company.testrail.io` |
+| `TESTRAIL_USERNAME` | TestRail username/email | `user@company.com` |
+| `TESTRAIL_PASSWORD` | TestRail password/API key | `your-api-key` |
+| `TESTRAIL_PROJECT_ID` | TestRail project ID | `1` |
+| `TESTRAIL_SUITE_ID` | TestRail suite ID (optional) | `1` |
+
+### Setting Up Secrets
+
+1. Go to your GitHub repository
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add each secret with the corresponding value
+
+### Workflow Behavior
+
+- **Main branch pushes**: Sync test cases + export results to TestRail
+- **Develop branch pushes**: Export results to TestRail only
+- **Pull requests**: Run tests + comment with results summary
+- **All scenarios**: Upload test results as artifacts
+
+### Manual Workflow Trigger
+
+You can also trigger the workflow manually from the GitHub Actions tab if needed.
